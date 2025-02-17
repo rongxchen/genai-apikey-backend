@@ -1,0 +1,14 @@
+fastapi
+pycryptodome
+pydantic
+PyJWT
+pymongo
+uvicorn
+pydantic[email]
+python-multipart
+pytz
+websockets
+pillow
+fastapi-utilities
+pyyaml
+openai

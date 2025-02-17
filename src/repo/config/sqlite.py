@@ -1,0 +1,56 @@
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from src.config.reader import config
+from src.model.util import to_string
+
+
+DATABASE_URL = config["sqlite3"]["url"]
+
+
+engine = create_engine(DATABASE_URL)
+Base = declarative_base()
+
+
+@to_string
+class User(Base):
+    __tablename__ = "users"
+ 
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    user_id = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+    salt = Column(String, nullable=False)
+    status = Column(Integer, nullable=False, default=1)
+    is_deleted = Column(Integer, nullable=False, default=0)
+    created_at = Column(Integer)
+    updated_at = Column(Integer)
+    
+    
+@to_string
+class APIKey(Base):
+    __tablename__ = "api_keys"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    api_key_id = Column(String, nullable=False)
+    user_id = Column(String, nullable=False)
+    provider = Column(String, nullable=False)
+    key = Column(String, nullable=False)
+    status = Column(Integer, nullable=False, default=1)
+    created_at = Column(Integer)
+    updated_at = Column(Integer)
+
+
+Base.metadata.create_all(engine)
+
+
+session = None
+
+def get_session():
+    global session, engine
+    if session is not None:
+        return session
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
