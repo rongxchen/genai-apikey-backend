@@ -4,7 +4,7 @@
 
 # res = ChatService.prompt(
 #     prompt=PromptMessageDTO(
-#         chat_id="chat_id",
+#         chat_id=None,
 #         content="hi",
 #         model="deepseek-ai/DeepSeek-V2.5",
 #         provider="siliconflow",
@@ -14,10 +14,14 @@
 
 # print(res)
 
-from src.repo.config.sqlite import get_session, Message
 
+from src.repo.config.sqlite import get_session, Message, Chat
+from sqlalchemy import text
 
 session = get_session()
+
+# session.execute(text("drop table messages"))
+
 res = session.query(Message).all()
 for r in res:
     print(r)

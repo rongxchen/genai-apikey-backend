@@ -8,12 +8,8 @@ class ImageDTO(BaseModel):
     image_data: str
 
 
-class PromptCreateDTO(BaseModel):
-    model: str
-
-
 class PromptMessageDTO(BaseModel):
-    chat_id: str
+    chat_id: Union[str, None] = None
     content: str
     images: Union[List[ImageDTO], None] = None
     model: str

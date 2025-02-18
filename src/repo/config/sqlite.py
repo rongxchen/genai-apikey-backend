@@ -57,6 +57,19 @@ class Message(Base):
     token_used = Column(Integer)
     created_at = Column(Integer, nullable=False)
     updated_at = Column(Integer)
+    
+    
+@to_string
+class Chat(Base):
+    __tablename__ = "chats"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    chat_id = Column(String, nullable=False)
+    user_id = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    model = Column(String, nullable=False)
+    created_at = Column(Integer)
+    updated_at = Column(Integer)
 
 
 Base.metadata.create_all(engine)

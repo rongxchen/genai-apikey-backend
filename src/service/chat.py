@@ -1,33 +1,21 @@
 from src.repo.message import MessageRepo
+from src.repo.chat import ChatRepo
 from src.util import id_util, date_util
-from src.model.message import PromptCreateDTO, ResponseMessageVO, PromptMessageDTO
+from src.model.message import ResponseMessageVO, PromptMessageDTO
 from typing import List
-from src.repo.config.sqlite import Message
+from src.repo.config.sqlite import Message, Chat
 from src.enum.role import Role
 from src.service.api_key import APIKeyService
 from src.exception.exception_model import InputException
 from src.openai.base import OpenAiModel
+from src.model.chat import ChatVO
 
 
 class ChatService:
     
     def __init__(self):
         pass
-    
-    
-    @classmethod
-    def create_chat(
-        cls,
-        prompt_create_dto: PromptCreateDTO
-    ) -> str:
-        chat_id = id_util.generate_id()
-        while MessageRepo.count(chat_id=chat_id) > 0:
-            chat_id = id_util.generate_id()
-        return {
-            "chat_id": chat_id,
-            "model": prompt_create_dto.model,
-        }
-        
+
     
     @classmethod
     def prompt(
@@ -38,6 +26,18 @@ class ChatService:
         api_key = APIKeyService.get_default_key(provider=prompt.provider, user_id=user_id)
         if api_key is None:
             raise InputException(f"No default API key found for model provider [{prompt.provider}]")
+        if prompt.chat_id is None:
+            prompt.chat_id = id_util.generate_id()
+            chat = Chat()
+            chat.chat_id = prompt.chat_id
+            chat.user_id = user_id
+            chat.title = prompt.content
+            chat.model = prompt.model
+            chat.created_at = date_util.get_timestamp()
+            chat.updated_at = date_util.get_timestamp()
+            ChatRepo.create_chat(chat)
+        else:
+            ChatRepo.update_chat_time(chat_id=prompt.chat_id, ts=date_util.get_timestamp())
         # save user prompt
         user_prompt = Message()
         user_prompt.chat_id = prompt.chat_id
@@ -71,8 +71,32 @@ class ChatService:
         model_response.token_used = token_used["completion"]
         MessageRepo.create_one(user_prompt)
         MessageRepo.create_one(model_response)
+        ChatRepo.update_chat_time(chat_id=prompt.chat_id, ts=date_util.get_timestamp())
         # for chunk in content:
         #     yield chunk
+        
+    
+    @classmethod
+    def get_chats(
+        cls,
+        user_id: str,
+        skip: int,
+        limit: int
+    ) -> List[ChatVO]:
+        chats = ChatRepo.get_list(user_id=user_id, skip=skip, limit=limit)
+        res = []
+        for chat in chats:
+            res.append(ChatVO(
+                chat_id=chat.chat_id,
+                title=chat.title,
+                user_id=user_id,
+                model=chat.model,
+                created_at=chat.created_at,
+                updated_at=chat.updated_at
+            ))
+        return {
+            "list": res, "size": len(res), "has_more": len(res) == limit
+        }
 
 
     @classmethod
@@ -95,4 +119,6 @@ class ChatService:
                 created_at=message.created_at,
                 updated_at=message.updated_at
             ))
-        return res
+        return {
+            "list": res, "size": len(res), "has_more": len(res) == limit
+        }

@@ -6,6 +6,7 @@ from src.controller import (
     user,
     oauth2,
     api_key,
+    chat,
 )
 
 
@@ -16,6 +17,7 @@ app = FastAPI(
 app.include_router(user.router)
 app.include_router(oauth2.router)
 app.include_router(api_key.router)
+app.include_router(chat.router)
 
 add_exception_handler(app)
 
