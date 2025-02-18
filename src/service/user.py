@@ -1,5 +1,6 @@
+from typing import Dict
 from src.model.oauth2 import Token
-from src.model.user import UserRegisterDTO, UserLoginDTO
+from src.model.user import UserRegisterDTO, UserLoginDTO, UserVO
 from src.repo.user import UserRepo
 from src.repo.config.sqlite import User
 from src.util import (
@@ -64,4 +65,19 @@ class UserService:
         if user is None:
             raise InputException("User not found")
         return jwt_util.generate_token(user_id=user.user_id)
+    
+    
+    @classmethod
+    def get_me(
+        cls,
+        user_id: str
+    ) -> Dict:
+        user = UserRepo.get_by_user_id(user_id=user_id)
+        if user is None:
+            raise InputException("User not found")
+        return UserVO(
+            user_id=user.user_id,
+            username=user.username, 
+            email=user.email
+        )
     

@@ -38,7 +38,24 @@ class APIKey(Base):
     provider = Column(String, nullable=False)
     key = Column(String, nullable=False)
     status = Column(Integer, nullable=False, default=1)
+    is_default = Column(Integer, nullable=False, default=0)
     created_at = Column(Integer)
+    updated_at = Column(Integer)
+    
+    
+@to_string
+class Message(Base):
+    __tablename__ = "messages"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    chat_id = Column(String, nullable=False)
+    message_id = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    model = Column(String, nullable=False)
+    user_id = Column(String, nullable=False)
+    token_used = Column(Integer)
+    created_at = Column(Integer, nullable=False)
     updated_at = Column(Integer)
 
 

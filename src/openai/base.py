@@ -1,14 +1,13 @@
-import requests
-from typing import Union, Dict, Callable, List
-from src.enum.model import ModelName, Model
+from typing import List, Union, Dict
+from src.enum.model import ModelName
 from src.enum.role import Role
 from src.model.openai_sdk import Image
 from src.openai.mapping_config import (
-    BASE_URL
+    BASE_URL,
+    DEFAULT_MODEL,
 )
-from src.util import (
-    http_util
-)
+from openai import OpenAI, Stream
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
 
 class OpenAiModel:
@@ -17,26 +16,33 @@ class OpenAiModel:
         self, 
         model_name: Union[str, ModelName],
         api_key: str,
+        base_url: str = None,
     ):
         if isinstance(model_name, ModelName):
             self.model_name = model_name.value
         else:
             self.model_name = model_name
-        self.base_url = BASE_URL[self.model_name]
+        if base_url is not None:
+            self.base_url = base_url
+        else:
+            self.base_url = BASE_URL[self.model_name]
         self.api_key = api_key
-        self.headers = {
-            "User-Agent": http_util.get_user_agent(),
-        }
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url=self.base_url
+        )
         
     
     def __create_prompt_request(
         self, 
         message: str,
-        image: Image = None
+        image: Image = None,
+        model: str = None
     ) -> Dict:
-        default_model = ""
-        if self.model_name == ModelName.ChatGPT.value:
-            default_model = Model.ChatGPT4oMini.value
+        if model is None:
+            default_model = DEFAULT_MODEL[self.model_name]
+        else:
+            default_model = model
         res = {
             "model": default_model,
             "messages": [
@@ -61,45 +67,55 @@ class OpenAiModel:
         return res
     
     
-    def __send_request(
-        self, 
-        req_body: Dict,
-        stream: bool = False,
-        to_json: bool = True
-    ) -> Union[str, List]:
-        path = "/chat/completion"
-        resp = requests.post(
-            url=f"{self.base_url}{path}",
-            headers=self.headers,
-            json=req_body,
-            stream=stream
-        )
-        if stream:
-            res = []
-            for line in resp.iter_lines():
-                line: bytes = line
-                res.append(line.decode("utf-8"))
-            return res
-        if to_json:
-            return resp.json()
-        return resp.text
-        
-        
+    def __handle_response(
+        cls,
+        response: Union[ChatCompletion, Stream[ChatCompletionChunk]]
+    ) -> Dict[str, Union[str, List[str]]]:
+        if isinstance(response, ChatCompletion):
+            return {
+                "message_id": response.id,
+                "content": response.choices[0].message.content,
+                "token_used": {
+                    "prompt": response.usage.prompt_tokens,
+                    "completion": response.usage.completion_tokens,
+                    "total": response.usage.total_tokens
+                }
+            }
+        else:
+            resp = []
+            for chunk in response:
+                content = chunk.choices[0].delta.content
+                if content is not None and content != "":
+                    resp.append(content)
+                finish_reason = chunk.choices[0].finish_reason
+                if finish_reason is not None and finish_reason == "stop":
+                    return {
+                        "message_id": chunk.id,
+                        "content": resp,
+                        "token_used": {
+                            "prompt": chunk.usage.prompt_tokens,
+                            "completion": chunk.usage.completion_tokens,
+                            "total": chunk.usage.total_tokens
+                        }
+                    }
+    
+
     def prompt(
         self, 
         message: str,
         image: Image = None,
         stream: bool = False,
-        func: Callable = None,
-    ) -> Union[str, None]:
+        model: str = None,
+    ) -> Dict[str, Union[str, List[str]]]:
         req = self.__create_prompt_request(
             message=message,
-            image=image
+            image=image,
+            model=model
         )
-        resp = self.__send_request(req, stream=stream)
-        if stream:
-            for chunk in resp:
-                func(chunk)
-        else:
-            return resp
+        resp = self.client.chat.completions.create(
+            model=req["model"],
+            messages=req["messages"],
+            stream=stream
+        )
+        return self.__handle_response(resp)
     

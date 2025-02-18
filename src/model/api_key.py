@@ -1,7 +1,8 @@
 from pydantic import BaseModel
+from typing import Union
 
 
 # DTO
 class APIKeyDTO(BaseModel):
-    provider: str
-    key: str
+    provider: Union[str, None]
+    key: Union[str, None]

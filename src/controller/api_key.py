@@ -30,6 +30,14 @@ def get_api_keys(skip: int = 0,
     return failed_result(message="No API key found")
 
 
+@router.put("/{api_key_id}")
+def update_api_key(api_key_id: str,
+                   api_key_dto: APIKeyDTO,
+                   user_id: str = Depends(auth_util.get_current_user_id)):
+    APIKeyService.update_one(api_key_id, api_key_dto, user_id)
+    return success_result(message="API Key updated successfully")
+
+
 @router.delete("/{api_key_id}")
 def delete_api_key(api_key_id: str,
                    user_id: str = Depends(auth_util.get_current_user_id)):

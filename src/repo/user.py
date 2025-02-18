@@ -28,7 +28,7 @@ class UserRepo:
         user_id: str,
     ) -> User:
         with cls.session as session:
-            return session.query(User).filter(User.id == user_id).first()
+            return session.query(User).filter_by(user_id=user_id).first()
     
     
     @classmethod
@@ -37,7 +37,7 @@ class UserRepo:
         email: str,
     ) -> User:
         with cls.session as session:
-            return session.query(User).filter(User.email == email).first()
+            return session.query(User).filter_by(email=email).first()
     
     
     @classmethod
@@ -46,7 +46,7 @@ class UserRepo:
         user_id: str,
     ):
         with cls.session as session:
-            user = session.query(User).filter(User.id == user_id).first()
+            user = session.query(User).filter_by(user_id=user_id).first()
             if user is not None:
                 user.is_deleted = 1
                 user.status = 0

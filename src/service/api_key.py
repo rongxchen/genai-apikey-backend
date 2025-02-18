@@ -1,3 +1,4 @@
+from typing import Union
 from src.repo.api_key import APIKeyRepo
 from src.model.api_key import APIKeyDTO
 from src.repo.config.sqlite import APIKey
@@ -24,14 +25,22 @@ class APIKeyService:
         api_key_dto: APIKeyDTO,
         user_id: str
     ):
+        if api_key_dto.provider is None or api_key_dto.key is None:
+            raise InputException("Provider and key are required")
         if api_key_dto.provider not in cls.provider_list:
             raise InputException("Invalid provider")
+        api_key = APIKeyRepo.get_by_key(key=api_key_dto.key, user_id=user_id)
+        if api_key is not None:
+            raise InputException("API key already exists")
+        count = APIKeyRepo.count(user_id=user_id, provider=api_key_dto.provider)
+        is_default = 1 if count == 0 else 0
         api_key = APIKey()
         api_key.api_key_id = id_util.generate_id()
         api_key.user_id = user_id
         api_key.provider = api_key_dto.provider
         api_key.key = api_key_dto.key
         api_key.status = 1
+        api_key.is_default = is_default
         api_key.created_at = date_util.get_timestamp()
         api_key.updated_at = date_util.get_timestamp()
         APIKeyRepo.create_one(api_key)
@@ -52,6 +61,54 @@ class APIKeyService:
             "size": len(api_keys),
             "has_more": len(api_keys) == limit
         }
+        
+        
+    @classmethod
+    def get_default_key(
+        cls,
+        provider: str,
+        user_id: str
+    ) -> Union[str]:
+        key = APIKeyRepo.get_default_key(provider, user_id)
+        if key is None:
+            return None
+        return key
+        
+        
+    @classmethod
+    def set_default(
+        cls,
+        provider: str,
+        api_key_id: str,
+        user_id: str
+    ):
+        APIKeyRepo.update(
+            update={APIKey.is_default: 0},
+            user_id=user_id, provider=provider
+        )
+        APIKeyRepo.update(
+            update={APIKey.is_default: 1},
+            user_id=user_id, provider=provider, api_key_id=api_key_id
+        )
+    
+    
+    @classmethod
+    def update_one(
+        cls,
+        api_key_id: str,
+        api_key_dto: APIKeyDTO,
+        user_id: str
+    ):
+        updates = {}
+        if api_key_dto.provider is not None:
+            updates[APIKey.provider] = api_key_dto.provider
+        if api_key_dto.key is not None:
+            updates[APIKey.key] = api_key_dto.key
+        APIKeyRepo.update(
+            update=updates,
+            api_key_id=api_key_id,
+            user_id=user_id
+        )
     
     
     @classmethod

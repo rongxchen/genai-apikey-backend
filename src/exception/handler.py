@@ -19,14 +19,14 @@ def add_exception_handler(app: FastAPI):
     @app.exception_handler(InputException)
     def handle_input_exception(request: Request, exception: InputException):
         return JSONResponse(
-            status_code=400,
+            status_code=200,
             content=failed_result(message=exception.message)
         )
     
     @app.exception_handler(Exception)
     def handle_exception(request: Request, exception: Exception):
         return JSONResponse(
-            status_code=500,
+            status_code=200,
             content=failed_result(message=f"Internal server error: {exception}")
         )
     
