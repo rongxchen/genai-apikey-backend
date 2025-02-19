@@ -57,3 +57,9 @@ def set_default_api_key(provider: str,
 def get_providers(user_id: str = Depends(auth_util.get_current_user_id)):
     data = APIKeyService.get_providers()
     return success_result(message="Providers fetched successfully", data=data)
+
+
+@router.get("/models")
+def get_models(user_id: str = Depends(auth_util.get_current_user_id)):
+    data = APIKeyService.get_models()
+    return success_result(message="Models fetched successfully", data=data)

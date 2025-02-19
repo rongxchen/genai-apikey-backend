@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Dict, List, Union
 from src.repo.api_key import APIKeyRepo
 from src.model.api_key import APIKeyDTO
 from src.repo.config.sqlite import APIKey
@@ -7,7 +7,7 @@ from src.util import (
     id_util,
     list_util,
 )
-from src.enum.model import ModelName
+from src.enum.model import ModelName, MODEL_GROUPS
 from src.exception.exception_model import InputException
 
 
@@ -136,8 +136,9 @@ class APIKeyService:
     @classmethod
     def get_providers(
         cls,
-    ):
+    ) -> List[Dict]:
         return [{
             "name": provider,
-            "label": ModelName(provider).name
+            "label": ModelName(provider).name,
+            "models": list(MODEL_GROUPS[provider])
         } for provider in cls.provider_list]
