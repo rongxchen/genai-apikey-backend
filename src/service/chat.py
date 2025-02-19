@@ -1,3 +1,4 @@
+import json
 from src.repo.message import MessageRepo
 from src.repo.chat import ChatRepo
 from src.util import id_util, date_util
@@ -58,7 +59,7 @@ class ChatService:
         if prompt.chat_id is not None:
             msg_hist = MessageRepo.get_list(chat_id=prompt.chat_id, user_id=user_id, skip=0, limit=10)
         res = model.prompt(
-            prompt.content, 
+            message=prompt.content, 
             model=prompt.model, 
             stream=True,
             message_history=msg_hist
@@ -81,8 +82,16 @@ class ChatService:
         MessageRepo.create_one(user_prompt)
         MessageRepo.create_one(model_response)
         ChatRepo.update_chat_time(chat_id=prompt.chat_id, ts=date_util.get_timestamp())
-        # for chunk in content:
-        #     yield chunk
+        for chunk in content:
+            yield f'data: {json.dumps(
+                {
+                    "status": "ing", 
+                    "content": chunk,
+                    "chat_id": prompt.chat_id,
+                    "message_id": message_id
+                }
+            )}'
+        yield f'data: {json.dumps({"status": "done"})}'
         
         
     @classmethod

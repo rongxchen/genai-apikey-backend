@@ -57,13 +57,13 @@ class OpenAIModel:
                 }
             })
         if message_history is not None:
-            for message in message_history:
+            for _message in message_history:
                 res["messages"].append({
-                    "role": message.role,
+                    "role": _message.role,
                     "content": [
                         {
                             "type": "text",
-                            "text": message.content,
+                            "text": _message.content,
                         }
                     ]
                 })
