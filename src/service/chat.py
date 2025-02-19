@@ -7,7 +7,7 @@ from src.repo.config.sqlite import Message, Chat
 from src.enum.role import Role
 from src.service.api_key import APIKeyService
 from src.exception.exception_model import InputException
-from src.openai.base import OpenAiModel
+from src.openai.base import OpenAIModel
 from src.model.chat import ChatVO
 
 
@@ -49,11 +49,19 @@ class ChatService:
         user_prompt.created_at = date_util.get_timestamp()
         user_prompt.updated_at = date_util.get_timestamp()
         # send prompt
-        model = OpenAiModel(
+        model = OpenAIModel(
             model_name=prompt.provider,
             api_key=api_key
         )
-        res = model.prompt(prompt.content, model=prompt.model, stream=True)
+        msg_hist = None
+        if prompt.chat_id is not None:
+            msg_hist = MessageRepo.get_list(chat_id=prompt.chat_id, user_id=user_id, skip=0, limit=10)
+        res = model.prompt(
+            prompt.content, 
+            model=prompt.model, 
+            stream=True,
+            message_history=msg_hist
+        )
         message_id = res["message_id"]
         content = res["content"]
         token_used = res["token_used"]

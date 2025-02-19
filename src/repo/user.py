@@ -6,7 +6,7 @@ from src.repo.config.sqlite import (
 
 class UserRepo:
     
-    session = get_session()
+    session = get_session
     
     def __init__(self):
         pass
@@ -17,7 +17,7 @@ class UserRepo:
         cls,
         user: User
     ):
-        with cls.session as session:
+        with cls.session() as session:
             session.add(user)
             session.commit()
 
@@ -27,7 +27,7 @@ class UserRepo:
         cls,
         user_id: str,
     ) -> User:
-        with cls.session as session:
+        with cls.session() as session:
             return session.query(User).filter_by(user_id=user_id).first()
     
     
@@ -36,7 +36,7 @@ class UserRepo:
         cls,
         email: str,
     ) -> User:
-        with cls.session as session:
+        with cls.session() as session:
             return session.query(User).filter_by(email=email).first()
     
     
@@ -45,7 +45,7 @@ class UserRepo:
         cls,
         user_id: str,
     ):
-        with cls.session as session:
+        with cls.session() as session:
             user = session.query(User).filter_by(user_id=user_id).first()
             if user is not None:
                 user.is_deleted = 1

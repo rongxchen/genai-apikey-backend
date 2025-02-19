@@ -78,9 +78,9 @@ Base.metadata.create_all(engine)
 session = None
 
 def get_session():
-    global session, engine
-    if session is not None:
-        return session
+    # global session, engine
+    # if session is not None:
+    #     return session
     Session = sessionmaker(bind=engine)
     session = Session()
     return session

@@ -8,9 +8,10 @@ from src.openai.mapping_config import (
 )
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
+from src.repo.config.sqlite import Message
 
 
-class OpenAiModel:
+class OpenAIModel:
     
     def __init__(
         self, 
@@ -37,7 +38,8 @@ class OpenAiModel:
         self, 
         message: str,
         image: Image = None,
-        model: str = None
+        model: str = None,
+        message_history: List[Message] = None
     ) -> Dict:
         if model is None:
             default_model = DEFAULT_MODEL[self.model_name]
@@ -45,17 +47,7 @@ class OpenAiModel:
             default_model = model
         res = {
             "model": default_model,
-            "messages": [
-                {
-                    "role": Role.USER.value,
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": message,
-                        }
-                    ]
-                }
-            ]
+            "messages": []
         }
         if image is not None:
             res["messages"][0]["content"].append({
@@ -64,6 +56,26 @@ class OpenAiModel:
                     "url": image.get_image_url(),
                 }
             })
+        if message_history is not None:
+            for message in message_history:
+                res["messages"].append({
+                    "role": message.role,
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": message.content,
+                        }
+                    ]
+                })
+        res["messages"].append({
+            "role": Role.USER.value,
+            "content": [
+                {
+                    "type": "text",
+                    "text": message,
+                }
+            ]
+        })
         return res
     
     
@@ -106,11 +118,13 @@ class OpenAiModel:
         image: Image = None,
         stream: bool = False,
         model: str = None,
+        message_history: List[Message] = None
     ) -> Dict[str, Union[str, List[str]]]:
         req = self.__create_prompt_request(
             message=message,
             image=image,
-            model=model
+            model=model,
+            message_history=message_history
         )
         resp = self.client.chat.completions.create(
             model=req["model"],

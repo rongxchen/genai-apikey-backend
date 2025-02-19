@@ -7,7 +7,7 @@ from typing import List
 
 class MessageRepo:
     
-    session = get_session()
+    session = get_session
     
     def __init__(self):
         pass
@@ -18,7 +18,7 @@ class MessageRepo:
         cls,
         message: Message,
     ):
-        with cls.session as session:
+        with cls.session() as session:
             session.add(message)
             session.commit()
 
@@ -31,8 +31,9 @@ class MessageRepo:
         skip: int,
         limit: int,
     ) -> List[Message]:
-        with cls.session as session:
-            return session.query(Message).filter_by(chat_id=chat_id, user_id=user_id).order_by(Message.created_at.desc()).offset(skip).limit(limit).all()
+        with cls.session() as session:
+            res = session.query(Message).filter_by(chat_id=chat_id, user_id=user_id).order_by(Message.created_at.asc()).offset(skip).limit(limit).all()
+            return res
 
 
     @classmethod
@@ -40,8 +41,9 @@ class MessageRepo:
         cls,
         **filter
     ) -> int:
-        with cls.session as session:
-            return session.query(Message).filter_by(**filter).count()
+        with cls.session() as session:
+            res = session.query(Message).filter_by(**filter).count()
+            return res
 
 
     @classmethod
@@ -49,6 +51,6 @@ class MessageRepo:
         cls,
         chat_id: str
     ):
-        with cls.session as session:
+        with cls.session() as session:
             session.query(Message).filter_by(chat_id=chat_id).delete()
             session.commit()
