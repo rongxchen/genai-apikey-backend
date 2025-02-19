@@ -55,10 +55,16 @@ class APIKeyService:
     ):
         api_keys = APIKeyRepo.get_list(user_id, skip, limit)
         if list_util.is_empty(api_keys):
-            return None
+            return {
+                "list": [],
+                "size": 0,
+                "total": 0,
+                "has_more": False
+            }
         return {
             "list": api_keys,
             "size": len(api_keys),
+            "total": APIKeyRepo.count(user_id=user_id),
             "has_more": len(api_keys) == limit
         }
         
@@ -117,4 +123,21 @@ class APIKeyService:
         api_key_id: str,
         user_id: str
     ):
+        api_key = APIKeyRepo.get_by_api_key_id(api_key_id, user_id)
+        if api_key is None:
+            raise InputException("API key not found")
+        if api_key.is_default:
+            count = APIKeyRepo.count(user_id=user_id, provider=api_key.provider)
+            if count > 1:
+                raise InputException("Cannot delete default API key")
         APIKeyRepo.delete_one(api_key_id, user_id)
+
+
+    @classmethod
+    def get_providers(
+        cls,
+    ):
+        return [{
+            "name": provider,
+            "label": ModelName(provider).name
+        } for provider in cls.provider_list]

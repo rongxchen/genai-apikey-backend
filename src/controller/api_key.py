@@ -43,3 +43,17 @@ def delete_api_key(api_key_id: str,
                    user_id: str = Depends(auth_util.get_current_user_id)):
     APIKeyService.delete_one(api_key_id, user_id)
     return success_result(message="API Key deleted successfully")
+
+
+@router.put("/{provider}/{api_key_id}/default")
+def set_default_api_key(provider: str,
+                        api_key_id: str,
+                        user_id: str = Depends(auth_util.get_current_user_id)):
+    APIKeyService.set_default(provider, api_key_id, user_id)
+    return success_result(message="API Key set as default successfully")
+
+
+@router.get("/providers")
+def get_providers(user_id: str = Depends(auth_util.get_current_user_id)):
+    data = APIKeyService.get_providers()
+    return success_result(message="Providers fetched successfully", data=data)

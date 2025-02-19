@@ -56,6 +56,16 @@ class APIKeyRepo:
         with cls.session() as session:
             return session.query(APIKey).filter_by(key=key, user_id=user_id).first()
 
+
+    @classmethod
+    def get_by_api_key_id(
+        cls,
+        api_key_id: str,
+        user_id: str
+    ) -> APIKey:
+        with cls.session() as session:
+            return session.query(APIKey).filter_by(api_key_id=api_key_id, user_id=user_id).first()
+
     
     @classmethod
     def update(
