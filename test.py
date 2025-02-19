@@ -20,8 +20,9 @@ print(res)
 
 # session = get_session()
 
-# # session.execute(text("drop table messages"))
+# res = session.execute(text("drop table messages"))
+# print(res)
 
-# res = session.query(Message).all()
-# for r in res:
-#     print(r)
+# # res = session.query(Message).all()
+# # for r in res:
+# #     print(r)

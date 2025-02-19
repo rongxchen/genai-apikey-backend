@@ -68,6 +68,7 @@ class Chat(Base):
     user_id = Column(String, nullable=False)
     title = Column(String, nullable=False)
     model = Column(String, nullable=False)
+    provider = Column(String, nullable=False)
     created_at = Column(Integer)
     updated_at = Column(Integer)
 

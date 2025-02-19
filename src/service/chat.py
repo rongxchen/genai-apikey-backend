@@ -33,6 +33,7 @@ class ChatService:
             chat.user_id = user_id
             chat.title = prompt.content
             chat.model = prompt.model
+            chat.provider = prompt.provider
             chat.created_at = date_util.get_timestamp()
             chat.updated_at = date_util.get_timestamp()
             ChatRepo.create_chat(chat)
@@ -83,6 +84,26 @@ class ChatService:
         # for chunk in content:
         #     yield chunk
         
+        
+    @classmethod
+    def get_chat(
+        cls,
+        chat_id: str,
+        user_id: str
+    ) -> ChatVO:
+        chat = ChatRepo.get_one(chat_id=chat_id, user_id=user_id)
+        if chat is None:
+            return None
+        return ChatVO(
+            chat_id=chat.chat_id,
+            title=chat.title,
+            user_id=user_id,
+            model=chat.model,
+            provider=chat.provider,
+            created_at=chat.created_at,
+            updated_at=chat.updated_at
+        )
+        
     
     @classmethod
     def get_chats(
@@ -99,6 +120,7 @@ class ChatService:
                 title=chat.title,
                 user_id=user_id,
                 model=chat.model,
+                provider=chat.provider,
                 created_at=chat.created_at,
                 updated_at=chat.updated_at
             ))

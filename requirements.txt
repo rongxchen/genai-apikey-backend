@@ -12,3 +12,6 @@ pillow
 fastapi-utilities
 pyyaml
 openai
+fastapi[all]
+sse-starlette
+asyncio

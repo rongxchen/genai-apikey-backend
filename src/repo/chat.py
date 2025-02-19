@@ -21,6 +21,18 @@ class ChatRepo:
         with cls.session() as session:
             session.add(chat)
             session.commit()
+            
+            
+    @classmethod
+    def get_one(
+        cls,
+        chat_id: str,
+        user_id: str
+    ) -> Chat:
+        with cls.session() as session:
+            res = session.query(Chat).filter_by(chat_id=chat_id, user_id=user_id).first()
+            return res
+        
     
     @classmethod
     def get_list(
