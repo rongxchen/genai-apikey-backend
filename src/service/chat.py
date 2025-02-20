@@ -91,7 +91,13 @@ class ChatService:
                     "message_id": message_id
                 }
             )}'
-        yield f'data: {json.dumps({"status": "done"})}'
+        yield f'data: {json.dumps(
+            {
+                "status": "done",
+                "chat_id": prompt.chat_id,
+                "message_id": message_id
+            }
+        )}'
         
         
     @classmethod

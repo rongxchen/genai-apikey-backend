@@ -136,9 +136,14 @@ class APIKeyService:
     @classmethod
     def get_providers(
         cls,
+        user_id: str
     ) -> List[Dict]:
+        unique_providers = APIKeyRepo.get_unique_providers(user_id)
+        if list_util.is_empty(unique_providers):
+            return []
         return [{
             "name": provider,
             "label": ModelName(provider).name,
+            "disabled": False if provider in unique_providers else True,
             "models": list(MODEL_GROUPS[provider])
         } for provider in cls.provider_list]

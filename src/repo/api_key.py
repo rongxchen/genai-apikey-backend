@@ -66,6 +66,16 @@ class APIKeyRepo:
         with cls.session() as session:
             return session.query(APIKey).filter_by(api_key_id=api_key_id, user_id=user_id).first()
 
+
+    @classmethod
+    def get_unique_providers(
+        cls,
+        user_id: str
+    ) -> List[str]:
+        with cls.session() as session:
+            res = session.query(APIKey.provider).filter_by(user_id=user_id).distinct().all()
+            return [r[0] for r in res]
+
     
     @classmethod
     def update(
