@@ -46,3 +46,10 @@ def get_messages(chat_id: str,
                  user_id: str = Depends(auth_util.get_current_user_id)):
     res = ChatService.get_messages(chat_id=chat_id, user_id=user_id, skip=skip, limit=limit)
     return success_result(message="Messages found", data=res)
+
+
+@router.delete("/{chat_id}")
+def delete_chat(chat_id: str, 
+                user_id: str = Depends(auth_util.get_current_user_id)):
+    ChatService.delete_chat(chat_id=chat_id, user_id=user_id)
+    return success_result(message="Chat deleted")

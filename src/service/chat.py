@@ -167,3 +167,13 @@ class ChatService:
         return {
             "list": res, "size": len(res), "has_more": len(res) == limit
         }
+        
+    
+    @classmethod
+    def delete_chat(
+        cls,
+        chat_id: str,
+        user_id: str
+    ):
+        ChatRepo.delete_one(chat_id=chat_id, user_id=user_id)
+        MessageRepo.delete_by_chat_id(chat_id=chat_id)
