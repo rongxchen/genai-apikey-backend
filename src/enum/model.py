@@ -1,8 +1,7 @@
 from enum import Enum
-from typing import Union
 
 
-class ModelName(Enum):
+class Provider(Enum):
     ChatGPT = "chatgpt"
     DeepSeek = "deepseek"
     SiliconFlow = "siliconflow"
@@ -22,19 +21,19 @@ MODEL_LABEL_MAP = {
 
 
 MODEL_GROUPS = {
-    ModelName.ChatGPT.value: [
+    Provider.ChatGPT.value: [
         {
             "model": Model.ChatGPT4oMini.value,
             "label": MODEL_LABEL_MAP[Model.ChatGPT4oMini],
         }
     ],
-    ModelName.DeepSeek.value: [
+    Provider.DeepSeek.value: [
         {
             "model": Model.DeepSeekChat.value,
             "label": MODEL_LABEL_MAP[Model.DeepSeekChat],
         },
     ],
-    ModelName.SiliconFlow.value: [
+    Provider.SiliconFlow.value: [
         {
             "model": Model.DeepSeek_2p5.value,
             "label": MODEL_LABEL_MAP[Model.DeepSeek_2p5],

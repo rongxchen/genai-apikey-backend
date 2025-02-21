@@ -1,8 +1,8 @@
+from typing import List
 from src.repo.config.sqlite import (
     get_session,
     Chat,
 )
-from typing import List
 
 
 class ChatRepo:

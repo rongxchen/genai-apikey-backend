@@ -7,13 +7,13 @@ from src.util import (
     id_util,
     list_util,
 )
-from src.enum.model import ModelName, MODEL_GROUPS
+from src.enum.model import Provider, MODEL_GROUPS
 from src.exception.exception_model import InputException
 
 
 class APIKeyService:
     
-    provider_list = [model.value for model in ModelName]
+    provider_list = [model.value for model in Provider]
     
     def __init__(self):
         pass
@@ -143,7 +143,7 @@ class APIKeyService:
             return []
         return [{
             "name": provider,
-            "label": ModelName(provider).name,
+            "label": Provider(provider).name,
             "disabled": False if provider in unique_providers else True,
             "models": list(MODEL_GROUPS[provider])
         } for provider in cls.provider_list]

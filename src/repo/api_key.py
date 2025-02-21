@@ -1,8 +1,8 @@
+from typing import Dict, List, Union
 from src.repo.config.sqlite import (
     get_session,
     APIKey,
 )
-from typing import Dict, List, Union
 
 
 class APIKeyRepo:

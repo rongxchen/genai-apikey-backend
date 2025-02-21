@@ -1,8 +1,8 @@
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
+from typing import Annotated
 from src.util import jwt_util
 from src.exception.exception_model import UnauthorizedException
-from typing import Annotated
 
 
 user_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/oauth2/token")

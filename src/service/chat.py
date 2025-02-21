@@ -1,9 +1,9 @@
 import json
+from typing import List
 from src.repo.message import MessageRepo
 from src.repo.chat import ChatRepo
 from src.util import id_util, date_util
 from src.model.message import ResponseMessageVO, PromptMessageDTO
-from typing import List
 from src.repo.config.sqlite import Message, Chat
 from src.enum.role import Role
 from src.service.api_key import APIKeyService

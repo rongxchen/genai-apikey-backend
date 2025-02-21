@@ -1,13 +1,13 @@
 from typing import List, Union, Dict
-from src.enum.model import ModelName
+from openai import OpenAI, Stream
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
+from src.enum.model import Provider
 from src.enum.role import Role
 from src.model.openai_sdk import Image
 from src.openai.mapping_config import (
     BASE_URL,
     DEFAULT_MODEL,
 )
-from openai import OpenAI, Stream
-from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from src.repo.config.sqlite import Message
 
 
@@ -15,11 +15,11 @@ class OpenAIModel:
     
     def __init__(
         self, 
-        model_name: Union[str, ModelName],
+        model_name: Union[str, Provider],
         api_key: str,
         base_url: str = None,
     ):
-        if isinstance(model_name, ModelName):
+        if isinstance(model_name, Provider):
             self.model_name = model_name.value
         else:
             self.model_name = model_name
