@@ -57,6 +57,8 @@ class Message(Base):
     token_used = Column(Integer)
     created_at = Column(Integer, nullable=False)
     updated_at = Column(Integer)
+    has_think = Column(Integer, nullable=False, default=0)
+    think_content = Column(String)
     
     
 @to_string

@@ -19,7 +19,8 @@ class PromptMessageDTO(BaseModel):
 # VO
 class ResponseMessageVO:
     def __init__(self, chat_id: str, message_id: str, content: str, role: str, 
-                 model: str, created_at: int, updated_at: int):
+                 model: str, created_at: int, updated_at: int, has_think = False, 
+                 think_content: str = ""):
         self.chat_id = chat_id
         self.message_id = message_id
         self.content = content
@@ -27,3 +28,5 @@ class ResponseMessageVO:
         self.model = model
         self.created_at = created_at
         self.updated_at = updated_at
+        self.has_think = has_think
+        self.think_content = think_content

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from src.model.user import UserRegisterDTO
 from src.model.response import success_result, failed_result
 from src.service.user import UserService
-from src.util import auth_util
+from src.util.auth import AuthUtil
 
 
 router = APIRouter(
@@ -20,6 +20,6 @@ def register(user_dto: UserRegisterDTO):
 
 
 @router.get("/me")
-def get_me(user_id: str = Depends(auth_util.get_current_user_id)):
+def get_me(user_id: str = Depends(AuthUtil.get_current_user_id)):
     res = UserService.get_me(user_id)
     return success_result(message="User info found", data=res)

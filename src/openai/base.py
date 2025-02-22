@@ -87,6 +87,7 @@ class OpenAIModel:
             return {
                 "message_id": response.id,
                 "content": response.choices[0].message.content,
+                "think_content": response.choices[0].message.__dict__.get("reasoning_content", None),
                 "token_used": {
                     "prompt": response.usage.prompt_tokens,
                     "completion": response.usage.completion_tokens,
@@ -94,16 +95,21 @@ class OpenAIModel:
                 }
             }
         else:
-            resp = []
+            contents = []
+            think_contents = []
             for chunk in response:
                 content = chunk.choices[0].delta.content
                 if content is not None and content != "":
-                    resp.append(content)
+                    contents.append(content)
+                think_content = chunk.choices[0].delta.__dict__.get("reasoning_content", None)
+                if think_content is not None and think_content != "":
+                    think_contents.append(think_content)
                 finish_reason = chunk.choices[0].finish_reason
                 if finish_reason is not None and finish_reason == "stop":
                     return {
                         "message_id": chunk.id,
-                        "content": resp,
+                        "content": contents,
+                        "think_content": think_contents,
                         "token_used": {
                             "prompt": chunk.usage.prompt_tokens,
                             "completion": chunk.usage.completion_tokens,

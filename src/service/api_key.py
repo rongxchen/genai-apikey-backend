@@ -2,11 +2,9 @@ from typing import Dict, List, Union
 from src.repo.api_key import APIKeyRepo
 from src.model.api_key import APIKeyDTO
 from src.repo.config.sqlite import APIKey
-from src.util import (
-    date_util,
-    id_util,
-    list_util,
-)
+from src.util.date import DateUtil
+from src.util.id import IdUtil
+from src.util.list import ListUtil
 from src.enum.model import Provider, MODEL_GROUPS
 from src.exception.exception_model import InputException
 
@@ -35,14 +33,14 @@ class APIKeyService:
         count = APIKeyRepo.count(user_id=user_id, provider=api_key_dto.provider)
         is_default = 1 if count == 0 else 0
         api_key = APIKey()
-        api_key.api_key_id = id_util.generate_id()
+        api_key.api_key_id = IdUtil.generate_id()
         api_key.user_id = user_id
         api_key.provider = api_key_dto.provider
         api_key.key = api_key_dto.key
         api_key.status = 1
         api_key.is_default = is_default
-        api_key.created_at = date_util.get_timestamp()
-        api_key.updated_at = date_util.get_timestamp()
+        api_key.created_at = DateUtil.get_timestamp()
+        api_key.updated_at = DateUtil.get_timestamp()
         APIKeyRepo.create_one(api_key)
 
 
@@ -54,7 +52,7 @@ class APIKeyService:
         limit: int
     ):
         api_keys = APIKeyRepo.get_list(user_id, skip, limit)
-        if list_util.is_empty(api_keys):
+        if ListUtil.is_empty(api_keys):
             return {
                 "list": [],
                 "size": 0,
@@ -139,7 +137,7 @@ class APIKeyService:
         user_id: str
     ) -> List[Dict]:
         unique_providers = APIKeyRepo.get_unique_providers(user_id)
-        if list_util.is_empty(unique_providers):
+        if ListUtil.is_empty(unique_providers):
             return []
         return [{
             "name": provider,

@@ -11,7 +11,7 @@ websockets
 pillow
 fastapi-utilities
 pyyaml
-openai
+openai=1.63.2
 fastapi[all]
 sse-starlette
 asyncio
