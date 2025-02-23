@@ -23,3 +23,12 @@ class ListUtil:
         lst: List
     ) -> bool:
         return not cls.is_empty(lst)
+
+
+    @classmethod
+    def join(
+        cls,
+        lst: List[str],
+        sep: str = ""
+    ) -> str:
+        return sep.join(lst)

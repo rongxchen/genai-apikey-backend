@@ -1,6 +1,8 @@
+import json
 from typing import List, Union, Dict
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
+from src.model.message import PromptMessageDTO
 from src.enum.model import Provider
 from src.enum.role import Role
 from src.model.openai_sdk import Image
@@ -9,6 +11,10 @@ from src.openai.mapping_config import (
     DEFAULT_MODEL,
 )
 from src.repo.config.sqlite import Message
+from src.repo.message import MessageRepo
+from src.repo.chat import ChatRepo
+from src.util.list import ListUtil
+from src.util.date import DateUtil
 
 
 class OpenAIModel:
@@ -81,55 +87,90 @@ class OpenAIModel:
     
     def __handle_response(
         cls,
-        response: Union[ChatCompletion, Stream[ChatCompletionChunk]]
-    ) -> Dict[str, Union[str, List[str]]]:
+        response: Union[ChatCompletion, Stream[ChatCompletionChunk]],
+        prompt: PromptMessageDTO,
+        user_prompt: Message,
+        model_response: Message,
+    ):
         if isinstance(response, ChatCompletion):
-            return {
-                "message_id": response.id,
-                "content": response.choices[0].message.content,
-                "think_content": response.choices[0].message.__dict__.get("reasoning_content", None),
-                "token_used": {
-                    "prompt": response.usage.prompt_tokens,
-                    "completion": response.usage.completion_tokens,
-                    "total": response.usage.total_tokens
+            think_content = response.choices[0].message.reasoning_content or None
+            content = response.choices[0].message.content or None
+            ChatRepo.update_chat_time(chat_id=prompt.chat_id, ts=DateUtil.get_timestamp())
+            yield f'data: {json.dumps(
+                {
+                    "status": "ing", 
+                    "has_think": think_content is not None,
+                    "think_content": think_content or "",
+                    "content": content or "",
+                    "chat_id": prompt.chat_id,
+                    "message_id": response.id
                 }
-            }
+            )}'
+            yield f'data: {json.dumps(
+                {
+                    "status": "done",
+                    "chat_id": prompt.chat_id,
+                }
+            )}'
         else:
             contents = []
             think_contents = []
             for chunk in response:
+                print(chunk.choices[0].delta)
                 content = chunk.choices[0].delta.content
                 if content is not None and content != "":
                     contents.append(content)
-                think_content = chunk.choices[0].delta.__dict__.get("reasoning_content", None)
+                think_content = chunk.choices[0].delta.reasoning_content
                 if think_content is not None and think_content != "":
                     think_contents.append(think_content)
                 finish_reason = chunk.choices[0].finish_reason
                 if finish_reason is not None and finish_reason == "stop":
-                    return {
-                        "message_id": chunk.id,
-                        "content": contents,
-                        "think_content": think_contents,
-                        "token_used": {
-                            "prompt": chunk.usage.prompt_tokens,
-                            "completion": chunk.usage.completion_tokens,
-                            "total": chunk.usage.total_tokens
+                    # user prompt
+                    user_prompt.token_used = chunk.usage.prompt_tokens
+                    # model response
+                    model_response.message_id = chunk.id
+                    model_response.token_used = chunk.usage.completion_tokens
+                    if ListUtil.not_empty(contents):
+                        model_response.content = ListUtil.join(contents)
+                    if ListUtil.not_empty(think_contents):
+                        model_response.think_content = ListUtil.join(think_contents)
+                        model_response.has_think = 1
+                    MessageRepo.create_one(user_prompt)
+                    MessageRepo.create_one(model_response)
+                    ChatRepo.update_chat_time(chat_id=prompt.chat_id, ts=DateUtil.get_timestamp())
+                    yield f'data: {json.dumps(
+                        {
+                            "status": "done",
+                            "chat_id": prompt.chat_id,
                         }
-                    }
+                    )}'
+                    break
+                else:
+                    yield f'data: {json.dumps(
+                        {
+                            "status": "ing", 
+                            "has_think": len(think_contents) > 0,
+                            "think_content": think_content,
+                            "content": content,
+                            "chat_id": prompt.chat_id,
+                            "message_id": chunk.id
+                        }
+                    )}'
     
 
     def prompt(
         self, 
-        message: str,
+        prompt_message: PromptMessageDTO,
+        user_prompt: Message,
+        model_response: Message,
         image: Image = None,
         stream: bool = False,
-        model: str = None,
-        message_history: List[Message] = None
-    ) -> Dict[str, Union[str, List[str]]]:
+        message_history: List[Message] = None,
+    ):
         req = self.__create_prompt_request(
-            message=message,
+            message=prompt_message.content,
             image=image,
-            model=model,
+            model=prompt_message.model,
             message_history=message_history
         )
         resp = self.client.chat.completions.create(
@@ -137,5 +178,5 @@ class OpenAIModel:
             messages=req["messages"],
             stream=stream
         )
-        return self.__handle_response(resp)
+        return self.__handle_response(resp, prompt_message, user_prompt, model_response)
     

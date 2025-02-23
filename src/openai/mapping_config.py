@@ -10,5 +10,5 @@ BASE_URL = {
 DEFAULT_MODEL = {
     Provider.ChatGPT.value: Model.ChatGPT4oMini.value,
     Provider.DeepSeek.value: Model.DeepSeekChat.value,
-    Provider.SiliconFlow.value: Model.DeepSeek_2p5.value,
+    Provider.SiliconFlow.value: Model.SiliconFlow_DeepSeek_v3.value,
 }

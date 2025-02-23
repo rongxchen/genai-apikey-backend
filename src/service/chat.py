@@ -54,6 +54,18 @@ class ChatService:
         user_prompt.updated_at = DateUtil.get_timestamp()
         user_prompt.has_think = 0
         user_prompt.think_content = ""
+        # save assistant response
+        model_response = Message()
+        model_response.chat_id = prompt.chat_id
+        model_response.message_id = ""
+        model_response.content = ""
+        model_response.role = Role.ASSISTANT.value
+        model_response.model = prompt.model
+        model_response.user_id = user_id
+        model_response.created_at = DateUtil.get_timestamp()
+        model_response.updated_at = DateUtil.get_timestamp()
+        model_response.has_think = 0
+        model_response.think_content = ""
         # send prompt
         model = OpenAIModel(
             model_name=prompt.provider,
@@ -62,57 +74,14 @@ class ChatService:
         msg_hist = None
         if prompt.chat_id is not None:
             msg_hist = MessageRepo.get_list(chat_id=prompt.chat_id, user_id=user_id, skip=0, limit=10)
-        res = model.prompt(
-            message=prompt.content, 
-            model=prompt.model, 
+        return model.prompt(
+            prompt_message=prompt,
+            user_prompt=user_prompt,
+            model_response=model_response,
             stream=True,
-            message_history=msg_hist
+            message_history=msg_hist,
         )
-        message_id = res["message_id"]
-        think_content = res["think_content"]
-        if ListUtil.is_empty(think_content):
-            think_content = ""
-        else:
-            think_content = "".join(think_content)
-        has_think = 1 if think_content != "" else 0
-        content = res["content"]
-        token_used = res["token_used"]
-        # save assistant response
-        model_response = Message()
-        model_response.chat_id = prompt.chat_id
-        model_response.message_id = message_id
-        model_response.content = "".join(content) if isinstance(content, list) else content
-        model_response.role = Role.ASSISTANT.value
-        model_response.model = prompt.model
-        model_response.user_id = user_id
-        model_response.created_at = DateUtil.get_timestamp()
-        model_response.updated_at = DateUtil.get_timestamp()
-        model_response.has_think = has_think
-        model_response.think_content = think_content
-        user_prompt.token_used = token_used["prompt"]
-        model_response.token_used = token_used["completion"]
-        MessageRepo.create_one(user_prompt)
-        MessageRepo.create_one(model_response)
-        ChatRepo.update_chat_time(chat_id=prompt.chat_id, ts=DateUtil.get_timestamp())
-        for chunk in content:
-            yield f'data: {json.dumps(
-                {
-                    "status": "ing", 
-                    "has_think": has_think,
-                    "think_content": think_content,
-                    "content": chunk,
-                    "chat_id": prompt.chat_id,
-                    "message_id": message_id
-                }
-            )}'
-        yield f'data: {json.dumps(
-            {
-                "status": "done",
-                "chat_id": prompt.chat_id,
-                "message_id": message_id
-            }
-        )}'
-        
+
         
     @classmethod
     def get_chat(
