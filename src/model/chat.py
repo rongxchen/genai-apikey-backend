@@ -1,3 +1,11 @@
+from pydantic import BaseModel
+from typing import Optional
+
+
+class ChatRenameDTO(BaseModel):
+    title: Optional[str] = ""
+
+
 class ChatVO:
     def __init__(self, chat_id: str, title: str, user_id: str, model: str,
                  provider: str, created_at: int, updated_at: int):

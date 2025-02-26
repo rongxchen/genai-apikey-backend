@@ -55,6 +55,19 @@ class ChatRepo:
         with cls.session() as session:
             session.query(Chat).filter_by(chat_id=chat_id).update({"updated_at": ts})
             session.commit()
+            
+    
+    @classmethod
+    def update_chat_title(
+        cls,
+        chat_id: str,
+        title: str,
+        user_id: str
+    ):
+        with cls.session() as session:
+            rows = session.query(Chat).filter_by(chat_id=chat_id, user_id=user_id).update({"title": title})
+            session.commit()
+        return rows == 1
     
     
     @classmethod

@@ -4,6 +4,7 @@ from src.util.auth import AuthUtil
 from src.model.response import success_result, failed_result
 from src.service.chat import ChatService
 from src.model.message import PromptMessageDTO
+from src.model.chat import ChatRenameDTO
 
 
 router = APIRouter(
@@ -29,6 +30,16 @@ def get_chat(chat_id: str,
     if res is None:
         return failed_result(message="Chat not found")
     return success_result(message="Chat found", data=res)
+
+
+@router.put("/{chat_id}")
+def rename_chat_title(chat_id: str,
+                      chat_rename_dto: ChatRenameDTO,
+                      user_id: str = Depends(AuthUtil.get_current_user_id)):
+    updated = ChatService.rename_chat_title(chat_id=chat_id, chat_rename_dto=chat_rename_dto, user_id=user_id)
+    if not updated:
+        return failed_result(message="Chat title not updated")
+    return success_result(message="Chat title updated", data=updated)
 
 
 @router.get("")

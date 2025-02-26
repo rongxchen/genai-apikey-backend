@@ -4,14 +4,13 @@ from src.repo.message import MessageRepo
 from src.repo.chat import ChatRepo
 from src.util.id import IdUtil
 from src.util.date import DateUtil
-from src.util.list import ListUtil
 from src.model.message import ResponseMessageVO, PromptMessageDTO
 from src.repo.config.sqlite import Message, Chat
 from src.enum.role import Role
 from src.service.api_key import APIKeyService
 from src.exception.exception_model import InputException
 from src.openai.base import OpenAIModel
-from src.model.chat import ChatVO
+from src.model.chat import ChatVO, ChatRenameDTO
 
 
 class ChatService:
@@ -81,7 +80,19 @@ class ChatService:
             stream=True,
             message_history=msg_hist,
         )
-
+        
+    
+    @classmethod
+    def rename_chat_title(
+        cls,
+        chat_id: str,
+        chat_rename_dto: ChatRenameDTO,
+        user_id: str
+    ):
+        if chat_rename_dto.title is not None and chat_rename_dto.title.strip() != "":
+            return ChatRepo.update_chat_title(chat_id=chat_id, title=chat_rename_dto.title, user_id=user_id)
+        return False
+        
         
     @classmethod
     def get_chat(
